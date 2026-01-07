@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure TTS Studio - Professional Voice Generation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .emotion-badge {
+            background: #2a2a2a;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #a0a0a0;
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+        }
+        
+        /* Sidebar - Voice Selection */
+        .sidebar {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #2a2a2a;
+            height: fit-content;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #0f0f0f;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #3a3a3a;
+            border-radius: 10px;
+        }
+        
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .language-group {
+            margin-bottom: 20px;
+        }
+        
+        .language-header {
+            font-size: 13px;
+            color: #808080;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .voice-item {
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .voice-item:hover {
+            border-color: #667eea;
+            background: #1a1a1a;
+        }
+        
+        .voice-item.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        
+        .voice-info {
+            flex: 1;
+        }
+        
+        .voice-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+        
+        .voice-meta {
+            font-size: 12px;
+            color: #808080;
+        }
+        
+        .voice-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .preview-btn {
+            background: #2a2a2a;
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            color: #a0a0a0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .preview-btn:hover {
+            background: #667eea;
+            color: #ffffff;
+        }
+        
+        .preview-btn.playing {
+            background: #667eea;
+            color: #ffffff;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .editor-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #2a2a2a;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #ffffff;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            max-height: 500px;
+            padding: 16px;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 15px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            line-height: 1.6;
+            overflow-y: auto;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .emotion-guide {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .emotion-guide-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+        
+        .emotion-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .emotion-tag {
+            background: #2a2a2a;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #a0a0a0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .emotion-tag:hover {
+            background: #667eea;
+            color: #ffffff;
+            border-color: #667eea;
+        }
+        
+        /* Generate Button */
+        .generate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .generate-btn:disabled {
+            background: #2a2a2a;
+            color: #606060;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .generate-btn .spinner {
+            display: none;
+        }
+        
+        .generate-btn.loading .spinner {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        /* Audio Player */
+        .audio-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #2a2a2a;
+            display: none;
+        }
+        
+        .audio-section.show {
+            display: block;
+        }
+        
+        audio {
+            width: 100%;
+            margin-top: 12px;
+            height: 48px;
+        }
+        
+        /* Loading */
+        .loading-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 32px;
+            border: 1px solid #2a2a2a;
+            text-align: center;
+            display: none;
+        }
+        
+        .loading-section.show {
+            display: block;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #2a2a2a;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .progress-text {
+            color: #a0a0a0;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #808080;
+            font-size: 14px;
+        }
+        
+        /* Error */
+        .error-section {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            color: #ef4444;
+            display: none;
+            margin-top: 16px;
+        }
+        
+        .error-section.show {
+            display: block;
+        }
+        
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: #0f0f0f;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #808080;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                max-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎙️ ECF TTS Studio</div>
+        <div class="header-actions">
+            <div class="emotion-badge">🎭 10 Emotions Available</div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Sidebar: Voice Selection -->
+        <div class="sidebar">
+            <h2>Voice Library</h2>
+            <input type="text" id="voiceSearch" class="search-box" placeholder="Search voices...">
+            <div id="voicesList"></div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="editor-section">
+                <div class="section-title">Text to Synthesize</div>
+                <textarea id="text" placeholder="Type or paste your text here...">[happy] Welcome to the Azure TTS Studio! [excited] This is amazing technology! [calm] You can express different emotions naturally.</textarea>
+                
+                <div class="emotion-guide">
+                    <div class="emotion-guide-title">💡 Available Emotions</div>
+                    <div class="emotion-tags">
+                        <span class="emotion-tag" onclick="insertEmotion('happy')">😊 happy</span>
+                        <span class="emotion-tag" onclick="insertEmotion('excited')">🤩 excited</span>
+                        <span class="emotion-tag" onclick="insertEmotion('sad')">😢 sad</span>
+                        <span class="emotion-tag" onclick="insertEmotion('angry')">😠 angry</span>
+                        <span class="emotion-tag" onclick="insertEmotion('calm')">😌 calm</span>
+                        <span class="emotion-tag" onclick="insertEmotion('whisper')">🤫 whisper</span>
+                        <span class="emotion-tag" onclick="insertEmotion('surprised')">😲 surprised</span>
+                        <span class="emotion-tag" onclick="insertEmotion('fearful')">😨 fearful</span>
+                        <span class="emotion-tag" onclick="insertEmotion('disgusted')">🤢 disgusted</span>
+                        <span class="emotion-tag" onclick="insertEmotion('neutral')">😐 neutral</span>
+                    </div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Characters</div>
+                        <div class="stat-value" id="charCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Words</div>
+                        <div class="stat-value" id="wordCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Emotions</div>
+                        <div class="stat-value" id="emotionCount">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="generateBtn" class="generate-btn" onclick="generateSpeech()">
+                <span class="spinner">⏳</span>
+                <span class="btn-text">Generate Speech</span>
+            </button>
+            
+            <div class="error-section" id="error"></div>
+            
+            <div class="loading-section" id="loading">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Generating your speech with emotions...</div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0% complete</div>
+                </div>
+            </div>
+            
+            <div class="audio-section" id="audioSection">
+                <div class="section-title">🎧 Generated Audio</div>
+                <audio id="audio" controls></audio>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let voicesData = {};
+        let selectedVoice = null;
+        let currentAudioUrl = null;
+        let previewAudios = {};
+        
+        // Locale name mapping for better display
+        const localeNames = {
+            'af-ZA': 'Afrikaans (South Africa)',
+            'am-ET': 'Amharic (Ethiopia)',
+            'ar-AE': 'Arabic (UAE)',
+            'ar-BH': 'Arabic (Bahrain)',
+            'ar-DZ': 'Arabic (Algeria)',
+            'ar-EG': 'Arabic (Egypt)',
+            'ar-IQ': 'Arabic (Iraq)',
+            'ar-JO': 'Arabic (Jordan)',
+            'ar-KW': 'Arabic (Kuwait)',
+            'ar-LB': 'Arabic (Lebanon)',
+            'ar-LY': 'Arabic (Libya)',
+            'ar-MA': 'Arabic (Morocco)',
+            'ar-OM': 'Arabic (Oman)',
+            'ar-QA': 'Arabic (Qatar)',
+            'ar-SA': 'Arabic (Saudi Arabia)',
+            'ar-SY': 'Arabic (Syria)',
+            'ar-TN': 'Arabic (Tunisia)',
+            'ar-YE': 'Arabic (Yemen)',
+            'az-AZ': 'Azerbaijani (Azerbaijan)',
+            'bg-BG': 'Bulgarian (Bulgaria)',
+            'bn-BD': 'Bengali (Bangladesh)',
+            'bn-IN': 'Bengali (India)',
+            'bs-BA': 'Bosnian (Bosnia)',
+            'ca-ES': 'Catalan (Spain)',
+            'cs-CZ': 'Czech (Czech Republic)',
+            'cy-GB': 'Welsh (UK)',
+            'da-DK': 'Danish (Denmark)',
+            'de-AT': 'German (Austria)',
+            'de-CH': 'German (Switzerland)',
+            'de-DE': 'German (Germany)',
+            'el-GR': 'Greek (Greece)',
+            'en-AU': 'English (Australia)',
+            'en-CA': 'English (Canada)',
+            'en-GB': 'English (UK)',
+            'en-HK': 'English (Hong Kong)',
+            'en-IE': 'English (Ireland)',
+            'en-IN': 'English (India)',
+            'en-KE': 'English (Kenya)',
+            'en-NG': 'English (Nigeria)',
+            'en-NZ': 'English (New Zealand)',
+            'en-PH': 'English (Philippines)',
+            'en-SG': 'English (Singapore)',
+            'en-TZ': 'English (Tanzania)',
+            'en-US': 'English (United States)',
+            'en-ZA': 'English (South Africa)',
+            'es-AR': 'Spanish (Argentina)',
+            'es-BO': 'Spanish (Bolivia)',
+            'es-CL': 'Spanish (Chile)',
+            'es-CO': 'Spanish (Colombia)',
+            'es-CR': 'Spanish (Costa Rica)',
+            'es-CU': 'Spanish (Cuba)',
+            'es-DO': 'Spanish (Dominican Republic)',
+            'es-EC': 'Spanish (Ecuador)',
+            'es-ES': 'Spanish (Spain)',
+            'es-GQ': 'Spanish (Equatorial Guinea)',
+            'es-GT': 'Spanish (Guatemala)',
+            'es-HN': 'Spanish (Honduras)',
+            'es-MX': 'Spanish (Mexico)',
+            'es-NI': 'Spanish (Nicaragua)',
+            'es-PA': 'Spanish (Panama)',
+            'es-PE': 'Spanish (Peru)',
+            'es-PR': 'Spanish (Puerto Rico)',
+            'es-PY': 'Spanish (Paraguay)',
+            'es-SV': 'Spanish (El Salvador)',
+            'es-US': 'Spanish (United States)',
+            'es-UY': 'Spanish (Uruguay)',
+            'es-VE': 'Spanish (Venezuela)',
+            'et-EE': 'Estonian (Estonia)',
+            'eu-ES': 'Basque (Spain)',
+            'fa-IR': 'Persian (Iran)',
+            'fi-FI': 'Finnish (Finland)',
+            'fil-PH': 'Filipino (Philippines)',
+            'fr-BE': 'French (Belgium)',
+            'fr-CA': 'French (Canada)',
+            'fr-CH': 'French (Switzerland)',
+            'fr-FR': 'French (France)',
+            'ga-IE': 'Irish (Ireland)',
+            'gl-ES': 'Galician (Spain)',
+            'gu-IN': 'Gujarati (India)',
+            'he-IL': 'Hebrew (Israel)',
+            'hi-IN': 'Hindi (India)',
+            'hr-HR': 'Croatian (Croatia)',
+            'hu-HU': 'Hungarian (Hungary)',
+            'hy-AM': 'Armenian (Armenia)',
+            'id-ID': 'Indonesian (Indonesia)',
+            'is-IS': 'Icelandic (Iceland)',
+            'it-IT': 'Italian (Italy)',
+            'ja-JP': 'Japanese (Japan)',
+            'jv-ID': 'Javanese (Indonesia)',
+            'ka-GE': 'Georgian (Georgia)',
+            'kk-KZ': 'Kazakh (Kazakhstan)',
+            'km-KH': 'Khmer (Cambodia)',
+            'kn-IN': 'Kannada (India)',
+            'ko-KR': 'Korean (South Korea)',
+            'lo-LA': 'Lao (Laos)',
+            'lt-LT': 'Lithuanian (Lithuania)',
+            'lv-LV': 'Latvian (Latvia)',
+            'mk-MK': 'Macedonian (North Macedonia)',
+            'ml-IN': 'Malayalam (India)',
+            'mn-MN': 'Mongolian (Mongolia)',
+            'mr-IN': 'Marathi (India)',
+            'ms-MY': 'Malay (Malaysia)',
+            'mt-MT': 'Maltese (Malta)',
+            'my-MM': 'Burmese (Myanmar)',
+            'nb-NO': 'Norwegian Bokmål (Norway)',
+            'ne-NP': 'Nepali (Nepal)',
+            'nl-BE': 'Dutch (Belgium)',
+            'nl-NL': 'Dutch (Netherlands)',
+            'pa-IN': 'Punjabi (India)',
+            'pl-PL': 'Polish (Poland)',
+            'ps-AF': 'Pashto (Afghanistan)',
+            'pt-BR': 'Portuguese (Brazil)',
+            'pt-PT': 'Portuguese (Portugal)',
+            'ro-RO': 'Romanian (Romania)',
+            'ru-RU': 'Russian (Russia)',
+            'si-LK': 'Sinhala (Sri Lanka)',
+            'sk-SK': 'Slovak (Slovakia)',
+            'sl-SI': 'Slovenian (Slovenia)',
+            'so-SO': 'Somali (Somalia)',
+            'sq-AL': 'Albanian (Albania)',
+            'sr-RS': 'Serbian (Serbia)',
+            'su-ID': 'Sundanese (Indonesia)',
+            'sv-SE': 'Swedish (Sweden)',
+            'sw-KE': 'Swahili (Kenya)',
+            'sw-TZ': 'Swahili (Tanzania)',
+            'ta-IN': 'Tamil (India)',
+            'ta-LK': 'Tamil (Sri Lanka)',
+            'ta-MY': 'Tamil (Malaysia)',
+            'ta-SG': 'Tamil (Singapore)',
+            'te-IN': 'Telugu (India)',
+            'th-TH': 'Thai (Thailand)',
+            'tr-TR': 'Turkish (Turkey)',
+            'uk-UA': 'Ukrainian (Ukraine)',
+            'ur-IN': 'Urdu (India)',
+            'ur-PK': 'Urdu (Pakistan)',
+            'uz-UZ': 'Uzbek (Uzbekistan)',
+            'vi-VN': 'Vietnamese (Vietnam)',
+            'wuu-CN': 'Wu Chinese (China)',
+            'yue-CN': 'Cantonese (China)',
+            'zh-CN': 'Chinese Mandarin (China)',
+            'zh-HK': 'Chinese Cantonese (Hong Kong)',
+            'zh-TW': 'Chinese Mandarin (Taiwan)',
+            'zu-ZA': 'Zulu (South Africa)'
+        };
+        
+        function getLocaleName(locale) {
+            return localeNames[locale] || locale;
+        }
+        
+        // Load voices on page load
+        async function loadVoices() {
+            try {
+                const response = await fetch('/api/voices');
+                voicesData = await response.json();
+                renderVoices();
+                updateStats();
+            } catch (error) {
+                showError('Failed to load voices: ' + error.message);
+            }
+        }
+        
+        function renderVoices(searchTerm = '') {
+            const voicesList = document.getElementById('voicesList');
+            voicesList.innerHTML = '';
+            
+            const sortedLocales = Object.keys(voicesData).sort();
+            
+            sortedLocales.forEach(locale => {
+                const voices = voicesData[locale];
+                const localeName = getLocaleName(locale);
+                
+                const filteredVoices = voices.filter(voice => 
+                    voice.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    locale.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    localeName.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                
+                if (filteredVoices.length === 0) return;
+                
+                const group = document.createElement('div');
+                group.className = 'language-group';
+                
+                const header = document.createElement('div');
+                header.className = 'language-header';
+                header.textContent = localeName;
+                group.appendChild(header);
+                
+                filteredVoices.forEach(voice => {
+                    const item = document.createElement('div');
+                    item.className = 'voice-item';
+                    if (selectedVoice === voice.name) {
+                        item.classList.add('active');
+                    }
+                    
+                    // Extract just the voice name without locale suffix
+                    const displayName = voice.display_name.split(' - ')[0];
+                    
+                    item.innerHTML = `
+                        <div class="voice-info">
+                            <div class="voice-name">${displayName}</div>
+                            <div class="voice-meta">${voice.gender}</div>
+                        </div>
+                        <div class="voice-actions">
+                            <button class="preview-btn" onclick="previewVoice('${voice.name}', event)" title="Preview Voice">
+                                ▶
+                            </button>
+                        </div>
+                    `;
+                    
+                    item.onclick = (e) => {
+                        if (!e.target.classList.contains('preview-btn')) {
+                            selectVoice(voice.name);
+                        }
+                    };
+                    
+                    group.appendChild(item);
+                });
+                
+                voicesList.appendChild(group);
+            });
+            
+            // Auto-select first voice if none selected
+            if (!selectedVoice && sortedLocales.length > 0) {
+                const firstVoices = voicesData[sortedLocales[0]];
+                if (firstVoices.length > 0) {
+                    selectVoice(firstVoices[0].name);
+                }
+            }
+        }
+        
+        function selectVoice(voiceName) {
+            selectedVoice = voiceName;
+            renderVoices(document.getElementById('voiceSearch').value);
+        }
+        
+        async function previewVoice(voiceName, event) {
+            event.stopPropagation();
+            const btn = event.target;
+            
+            // Stop any currently playing preview
+            Object.values(previewAudios).forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+            });
+            document.querySelectorAll('.preview-btn').forEach(b => b.classList.remove('playing'));
+            
+            try {
+                btn.classList.add('playing');
+                
+                // Check if we have cached preview
+                if (!previewAudios[voiceName]) {
+                    // Generate preview
+                    const response = await fetch('/api/preview', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ voice: voiceName })
+                    });
+                    
+                    if (!response.ok) throw new Error('Preview generation failed');
+                    
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const audio = new Audio(url);
+                    previewAudios[voiceName] = audio;
+                }
+                
+                const audio = previewAudios[voiceName];
+                audio.onended = () => btn.classList.remove('playing');
+                await audio.play();
+                
+            } catch (error) {
+                btn.classList.remove('playing');
+                console.error('Preview error:', error);
+            }
+        }
+        
+        function insertEmotion(emotion) {
+            const textarea = document.getElementById('text');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            
+            const newText = text.substring(0, start) + `[${emotion}] ` + text.substring(end);
+            textarea.value = newText;
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + emotion.length + 3;
+            updateStats();
+        }
+        
+        function updateStats() {
+            const text = document.getElementById('text').value;
+            const charCountEl = document.getElementById('charCount');
+            charCountEl.textContent = text.length;
+            
+            // Warn if text is too long
+            if (text.length > 100000) {
+                charCountEl.style.color = '#ff4444';
+                charCountEl.title = 'Text exceeds maximum length of 100,000 characters';
+            } else if (text.length > 80000) {
+                charCountEl.style.color = '#ffaa00';
+                charCountEl.title = 'Text is approaching maximum length';
+            } else {
+                charCountEl.style.color = '#667eea';
+                charCountEl.title = '';
+            }
+            
+            document.getElementById('wordCount').textContent = text.trim().split(/\s+/).filter(w => w).length;
+            
+            const emotionMatches = text.match(/\[\w+\]/g);
+            document.getElementById('emotionCount').textContent = emotionMatches ? emotionMatches.length : 0;
+        }
+        
+        let progressInterval = null;
+        
+        function updateProgress(current, total) {
+            const percentage = Math.round((current / total) * 100);
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${percentage}% complete (${current}/${total} segments)`;
+        }
+        
+        async function pollProgress(taskId, totalSegments) {
+            const checkProgress = async () => {
+                try {
+                    const response = await fetch(`/api/progress/${taskId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateProgress(data.completed, totalSegments);
+                        if (data.completed >= totalSegments) {
+                            clearInterval(progressInterval);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Progress check failed:', error);
+                }
+            };
+            
+            progressInterval = setInterval(checkProgress, 500);
+        }
+        
+        async function generateSpeech() {
+            const text = document.getElementById('text').value;
+            
+            if (!text.trim()) {
+                showError('Please enter some text!');
+                return;
+            }
+            
+            if (text.length > 100000) {
+                showError('Text is too long! Maximum 100,000 characters allowed.');
+                return;
+            }
+            
+            if (!selectedVoice) {
+                showError('Please select a voice!');
+                return;
+            }
+            
+            // Hide previous results
+            document.getElementById('audioSection').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+            
+            // Reset progress
+            updateProgress(0, 1);
+            
+            // Show loading
+            const emotionCount = (text.match(/\[\w+\]/g) || []).length;
+            const loadingEl = document.getElementById('loading');
+            loadingEl.classList.add('show');
+            
+            // Update loading message based on content size
+            const loadingText = loadingEl.querySelector('.loading-text');
+            if (emotionCount > 50) {
+                loadingText.textContent = `Generating ${emotionCount} emotion segments... This will take several minutes.`;
+            } else if (emotionCount > 20) {
+                loadingText.textContent = `Generating ${emotionCount} emotion segments... This may take 2-3 minutes.`;
+            } else if (emotionCount > 5 || text.length > 10000) {
+                loadingText.textContent = `Generating ${emotionCount} emotion segments... This may take a minute.`;
+            } else {
+                loadingText.textContent = 'Generating speech...';
+            }
+            
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.classList.add('loading');
+            
+            try {
+                // Start progress polling
+                const taskId = Date.now().toString();
+                const totalSegments = Math.max(1, emotionCount);
+                pollProgress(taskId, totalSegments);
+                
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, voice: selectedVoice, task_id: taskId })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to generate speech');
+                }
+                
+                // Complete progress
+                updateProgress(totalSegments, totalSegments);
+                
+                // Clean up previous audio
+                if (currentAudioUrl) {
+                    URL.revokeObjectURL(currentAudioUrl);
+                }
+                
+                const blob = await response.blob();
+                currentAudioUrl = URL.createObjectURL(blob);
+                
+                const audio = document.getElementById('audio');
+                audio.src = currentAudioUrl;
+                
+                document.getElementById('audioSection').classList.add('show');
+                audio.play().catch(e => console.log('Auto-play prevented:', e));
+                
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                document.getElementById('loading').classList.remove('show');
+                btn.disabled = false;
+                btn.classList.remove('loading');
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 5000);
+        }
+        
+        // Event listeners
+        document.getElementById('voiceSearch').addEventListener('input', (e) => {
+            renderVoices(e.target.value);
+        });
+        
+        document.getElementById('text').addEventListener('input', updateStats);
+        document.getElementById('text').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                generateSpeech();
+            }
+        });
+        
+        // Initialize
+        loadVoices();
+    </script>
+</body>
+</html>
