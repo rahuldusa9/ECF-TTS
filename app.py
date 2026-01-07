@@ -34,18 +34,24 @@ app.config['JSON_AS_ASCII'] = False  # Support non-ASCII characters
 # Progress tracking for generation tasks
 progress_tracker = {}
 
-# Emotion to SSML prosody mapping (subtle values for natural sound)
+# Emotion to prosody mapping - Psycholinguistically calibrated values
+# Pitch: +1% ≈ 1-2Hz change from baseline (male: 120Hz, female: 220Hz)
+# Rate: +1% ≈ 1% change in syllables per second
+# Volume: +1dB ≈ perceptible loudness change
 EMOTION_PROSODY = {
-    'happy': {'pitch': '+5%', 'rate': '+10%', 'volume': '+5dB'},
-    'excited': {'pitch': '+8%', 'rate': '+15%', 'volume': '+10dB'},
-    'sad': {'pitch': '-8%', 'rate': '-10%', 'volume': '-5dB'},
-    'angry': {'pitch': '+3%', 'rate': '+10%', 'volume': '+15dB'},
-    'calm': {'pitch': '-3%', 'rate': '-5%', 'volume': '-3dB'},
-    'whisper': {'pitch': '-5%', 'rate': '-15%', 'volume': '-10dB'},
-    'surprised': {'pitch': '+10%', 'rate': '+5%', 'volume': '+8dB'},
-    'fearful': {'pitch': '+6%', 'rate': '+15%', 'volume': '+5dB'},
-    'disgusted': {'pitch': '-5%', 'rate': '-5%', 'volume': '+5dB'},
-    'neutral': {'pitch': '+0%', 'rate': '+0%', 'volume': '+0dB'}
+    'happy': {'pitch': '+7%', 'rate': '+12%', 'volume': '+6dB'},        # Moderate pitch rise, 12% faster (natural joy)
+    'excited': {'pitch': '+10%', 'rate': '+18%', 'volume': '+9dB'},     # High pitch, 18% faster speech (high arousal)
+    'sad': {'pitch': '-6%', 'rate': '-12%', 'volume': '-7dB'},          # Lower pitch, 12% slower, quieter (low energy)
+    'angry': {'pitch': '+4%', 'rate': '+15%', 'volume': '+12dB'},       # Slight pitch rise (tension), 15% faster, loud
+    'calm': {'pitch': '-2%', 'rate': '-8%', 'volume': '-4dB'},          # Slight pitch drop, 8% slower, softer (relaxed)
+    'whisper': {'pitch': '-4%', 'rate': '-10%', 'volume': '-15dB'},     # Lower pitch, 10% slower, very quiet
+    'surprised': {'pitch': '+12%', 'rate': '+8%', 'volume': '+7dB'},    # Sharp pitch rise, moderate speed, louder
+    'fearful': {'pitch': '+8%', 'rate': '+20%', 'volume': '+5dB'},      # Higher pitch, 20% faster (anxiety), moderate volume
+    'disgusted': {'pitch': '-5%', 'rate': '-6%', 'volume': '+6dB'},     # Lower pitch (disapproval), slightly slower
+    'neutral': {'pitch': '+0%', 'rate': '+0%', 'volume': '+0dB'},       # Baseline (no modulation)
+    'serious': {'pitch': '-4%', 'rate': '+2%', 'volume': '+3dB'},       # Lower pitch (authority), steady pace
+    'questioning': {'pitch': '+9%', 'rate': '+5%', 'volume': '+4dB'},   # Rising pitch (inquisitive), slightly faster
+    'storytelling': {'pitch': '+3%', 'rate': '-5%', 'volume': '+5dB'}   # Slight pitch variation, 5% slower (clarity), louder
 }
 
 def chunk_long_text(text, max_length=500):
